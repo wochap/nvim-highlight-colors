@@ -254,6 +254,11 @@ function M.highlight_lsp_document_color(response, active_buffer_id, ns_id, posit
 		return
 	end
 
+	local highlighted_rows = {}
+	for _, position in pairs(positions or {}) do
+		highlighted_rows[position.row] = true
+	end
+
 	for _, match in pairs(response) do
 		local r, g, b, a =
 			match.color.red or 0, match.color.green or 0, match.color.blue or 0, match.color.alpha or 0
@@ -279,13 +284,14 @@ function M.highlight_lsp_document_color(response, active_buffer_id, ns_id, posit
 			value = value,
 		}
 
-		if (not is_already_highlighted) then
+		if not highlighted_rows[row] and not is_already_highlighted then
 			M.create_highlight(
 				active_buffer_id,
 				ns_id,
 				result,
 				options
 			)
+			highlighted_rows[row] = true
 		end
 		table.insert(results, result)
 	end

@@ -33,11 +33,15 @@ end
 function M.get_positions_by_regex(patterns, min_row, max_row, active_buffer_id, row_offset)
 	local positions = {}
 	local content = M.get_buffer_contents(min_row, max_row, active_buffer_id)
+	local highlighted_rows = {}
 
 	for _, pattern in pairs(patterns) do
 		for key, value in pairs(content) do
 			for match in string.gmatch(value, pattern) do
 				local row = key + min_row - row_offset
+				if highlighted_rows[row] then
+					break
+				end
 				local column_offset = M.get_column_offset(positions, match, row)
 				local pattern_without_usage_regex = M.remove_color_usage_pattern(match)
 				local valid_start, start_column = pcall(vim.fn.match, value, pattern_without_usage_regex, column_offset)
@@ -51,6 +55,8 @@ function M.get_positions_by_regex(patterns, min_row, max_row, active_buffer_id, 
 						start_column = start_column,
 						end_column = end_column,
 					})
+					highlighted_rows[row] = true
+					break
 				end
 			end
 		end
